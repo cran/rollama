@@ -1,0 +1,368 @@
+---
+title: "annotation"
+output: rmarkdown::html_vignette
+author: Maximilian Weber and Johannes B. Gruber
+vignette: >
+  %\VignetteIndexEntry{annotation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Introduction
+
+After you installed Ollama on your machine and downloaded the package rollama you can load the package and pull the default model (`llama2`) by calling:
+
+
+
+
+```r
+library(rollama)
+pull_model()
+#> ✔ model llama2 pulled succesfully
+```
+
+
+# Prompting Strategies
+
+If you want to annotate textual data, you can use various prompting strategies.
+For an overview of common approaches, you can read a paper by [Weber and Reichardt (2023)](https://arxiv.org/abs/2401.00284).
+These strategies primarily differ in whether or how many examples are given (Zero-shot, One-shot, or Few-shot) and whether reasoning is involved (Chain-of-Thought).
+
+When writing a prompt we can give the model content for the system part, user part and assistant part.
+The system message typically includes instructions or context that guides the interaction, setting the stage for how the user and the assistant should interact.
+For an annotation task we could write:
+"You assign texts into categories. Answer with just the correct category."
+The table below summarizes different prompting strategies for annotating textual data.
+Each strategy varies in the number of examples given and the incorporation of reasoning.
+
+| Prompting Strategy | Example Structure |
+|--------------------|--------------------|
+| Zero-shot          | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| One-shot           | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| Few-shot           | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`{"role": "user", "content": "(Example text) + classification question"},`<br>`{"role": "assistant", "content": "Example classification"},`<br>`. . . more examples`<br>`{"role": "user", "content": "(Text to classify) + classification question"}` |
+| Chain-of-Thought   | `{"role": "system", "content": "Text of System Prompt"},`<br>`{"role": "user", "content": "(Text to classify) + reasoning question"},`<br>`{"role": "assistant", "content": "Reasoning"},`<br>`{"role": "user", "content": "Classification question"}` |
+
+
+## Zero-shot
+
+In this approach, no prior examples are given.
+The structure includes a system prompt providing instructions and a user prompt with the text to classify and the classification question (in this example we only provide the categories).
+
+
+```r
+library(tibble)
+library(purrr)
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user",   "text: the pizza tastes terrible\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Negative
+```
+
+
+## One-shot
+
+This involves giving a single example before the actual task.
+The structure includes a system prompt, followed by a user prompt with an example text and classification question, the assistant's example classification, and then another user prompt with the new text to classify.
+
+
+```r
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "Category: Negative",
+  "user", "text: the service is great\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Positive
+```
+
+A nice side effect of the one-shot strategy (and all n>0-strategies) is that you can tune the format the model uses in its replies.
+For example, if you want to have an output that is easy to parse, you could change the assistant message to `"{'Category':'Negative','Confidence':'100%','Important':'terrible'}"`
+
+
+```r
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "{'Category':'Negative','Confidence':'100%','Important':'terrible'}",
+  "user", "text: the service is great\ncategories: positive, neutral, negative"
+)
+answer <- query(q, model_params = list(num_gpu = 0))
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> {'Category':'Positive','Confidence':'100%','Important':'great'}
+```
+
+This is a valid JSON return and can be parsed into a list with, e.g., `jsonlite::fromJSON()`.
+By using `pluck(answer, "message", "content")`, you can directly extract the result and don't need to copy it from screen.
+
+
+## Few-shot
+
+This strategy includes multiple examples (more than one).
+The structure is similar to one-shot but with several iterations of user and assistant messages providing examples before the final text to classify.
+
+
+```r
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. Answer with just the correct category.",
+  "user", "text: the pizza tastes terrible\ncategories: positive, neutral, negative",
+  "assistant", "Category: Negative",
+  "user", "text: the service is great\ncategories: positive, neutral, negative",
+  "assistant", "Category: Positive",
+  "user", "text: I once came here with my wife\ncategories: positive, neutral, negative",
+  "assistant", "Category: Neutral",
+  "user", "text: I once ate pizza\ncategories: positive, neutral, negative"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Neutral
+```
+
+
+## Chain-of-Thought
+
+This approach involves at least one reasoning step. The structure here starts with the system prompt, then a user prompt with a text to classify and a reasoning question.
+
+
+
+```r
+q_thought <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. ",
+  "user",   "text: the pizza tastes terrible\nWhat sentiment (positive, neutral, or negative) would you assign? Provide some thoughts."
+)
+output_thought <- query(q_thought)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> 
+#> Based on the text "the pizza tastes terrible," I would assign a sentiment of negative. Here's why:
+#> 
+#> * The use of the word "tastes" implies that the speaker has a strong opinion about the taste of the pizza, which is typically associated with negative
+#> emotions.
+#> * The phrase "terrible" is a strong adjective that conveys a sense of disappointment or displeasure.
+#> * The sentiment is further reinforced by the fact that the speaker used the word "tastes," which implies a personal evaluation or judgment about the pizza's
+#> taste, rather than a neutral description.
+#> 
+#> Overall, based on the language and structure of the sentence, it seems clear that the speaker has a negative sentiment towards the pizza.
+pluck(output_thought, "message", "content")
+#> [1] "\nBased on the text \"the pizza tastes terrible,\" I would assign a sentiment of negative. Here's why:\n\n* The use of the word \"tastes\" implies that the speaker has a strong opinion about the taste of the pizza, which is typically associated with negative emotions.\n* The phrase \"terrible\" is a strong adjective that conveys a sense of disappointment or displeasure.\n* The sentiment is further reinforced by the fact that the speaker used the word \"tastes,\" which implies a personal evaluation or judgment about the pizza's taste, rather than a neutral description.\n\nOverall, based on the language and structure of the sentence, it seems clear that the speaker has a negative sentiment towards the pizza."
+```
+
+In the next step we can use the assistant's reasoning and a user prompt with the classification question.
+
+
+```r
+q <- tribble(
+  ~role,    ~content,
+  "system", "You assign texts into categories. ",
+  "user",   "text: the pizza tastes terrible\nWhat sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.",
+  "assistant", output_thought$message$content,
+  "user",   "Now answer with just the correct category (positive, neutral, or negative)"
+)
+query(q)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> 
+#> Negative
+```
+
+
+# Batch annotation
+
+In practice, you probably never want to annotate just one text.
+In this section, we show you how you can wrap `rollama::query()` into another function to ask the model to annotate a batch of texts.
+We might add this function to the package in the future, but at the moment, we want to keep it simple.
+
+
+## Function to create a query
+
+The `create_query` function is designed to facilitate the creation of a structured query for text classification.
+
+Components:
+
+- **System Message**: Provides context or instructions for the classification task.
+- **Examples**: Prior examples consisting of user messages and assistant responses (for one-shot and few-shot learning).
+- **Text to Classify**: The new text to be categorized.
+- **Classification Question**: Lists the possible categories for classification.
+
+
+
+```r
+create_query <- function(systemmsg, examples, texttoclassify, classification_question) {
+  # Start with the system message
+  q <- tribble(
+    ~role,    ~content,
+    "system", systemmsg
+  )
+
+  # Add examples (if any), appending the classification question to the user messages
+  for(example in examples) {
+    usermsg_with_question <- paste(example$usermsg, "\n", classification_question)
+    q <- add_row(q, role = "user", content = usermsg_with_question)
+    q <- add_row(q, role = "assistant", content = example$assistantmsg)
+  }
+
+  # Add the current text to classify along with the classification question
+  usermsg_final <- paste("text:", texttoclassify, "\n", classification_question)
+  q <- add_row(q, role = "user", content = usermsg_final)
+
+  return(q)
+}
+```
+
+
+## Example usage
+
+### Zero-shot example
+
+In this example, the function is used without any examples.
+
+
+```r
+systemmsg <- "You assign texts into categories. Answer with just the correct category."
+q_zs <- create_query(systemmsg, examples = list(), "the pizza tastes terrible", "Categories: positive, neutral, negative")
+query(q_zs)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> 
+#> Category: Negative
+```
+
+
+### One-shot example with one example
+
+Here, one prior example is provided to aid the classification:
+
+
+```r
+examples_os <- list(
+  list(
+    usermsg = "text: the pizza tastes terrible",
+    assistantmsg = "Category: Negative"
+  )
+)
+q_os <- create_query(systemmsg, examples_os, "the service is great", "Categories: positive, neutral, negative")
+query(q_os)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Positive
+```
+
+
+### Few-shot example with multiple examples
+
+This scenario uses multiple examples to enrich the context for the new classification:
+
+
+```r
+examples_fs <- list(
+  list(
+    usermsg = "text: the pizza tastes terrible",
+    assistantmsg = "Category: Negative"
+  ),
+  list(
+    usermsg = "text: the service is great",
+    assistantmsg = "Category: Positive"
+  ),
+  list(
+    usermsg = "text: I once came here with my wife",
+    assistantmsg = "Category: Neutral"
+  )
+)
+q_fs <- create_query(systemmsg, examples_fs, "I once ate pizza", "Categories: positive, neutral, negative")
+query(q_fs)
+#> 
+#> ── Answer ────────────────────────────────────────────────────────
+#> Category: Positive
+```
+
+
+# Another example using a dataframe
+
+This example demonstrates how to perform sentiment analysis on a set of movie reviews. The process involves creating a dataframe of reviews, processing each review to classify its sentiment, and appending the results as a new column in the dataframe.
+
+We create a dataframe named `movie_reviews` with two columns:
+
+
+```r
+# Create an example dataframe with 5 movie reviews
+movie_reviews <- tibble(
+  review_id = 1:5,
+  review = c("A stunning visual spectacle with a gripping storyline.",
+             "The plot was predictable, but the acting was superb.",
+             "An overrated film with underwhelming performances.",
+             "A beautiful tale of love and adventure, beautifully shot.",
+             "The movie lacked depth, but the special effects were incredible.")
+)
+# Print the initial dataframe
+movie_reviews
+#> # A tibble: 5 × 2
+#>   review_id review                                                
+#>       <int> <chr>                                                 
+#> 1         1 A stunning visual spectacle with a gripping storyline.
+#> 2         2 The plot was predictable, but the acting was superb.  
+#> 3         3 An overrated film with underwhelming performances.    
+#> 4         4 A beautiful tale of love and adventure, beautifully s…
+#> 5         5 The movie lacked depth, but the special effects were …
+```
+
+We define a system message and a classification question to guide the sentiment analysis:
+
+The function `process_reviews`
+
+- Iterates through each review.
+- Constructs a query using `create_query`.
+- Obtains sentiment classification (by `query(q)` function).
+- Stores the result in the `annotations` vector.
+- Appends `annotations` as a new column in the dataframe.
+
+
+
+
+```r
+systemmsg <- "Classify the sentiment of the movie review. Answer with just the correct category."
+classification_question <- "Categories: positive, neutral, negative"
+
+# Function to process each review and append the result to a new column
+process_reviews <- function(reviews) {
+  annotations <- vector("character", length = nrow(reviews))
+
+  for (i in seq_along(reviews$review)) {
+    q <- create_query(systemmsg, examples = list(), reviews$review[i], classification_question)
+    output <- query(q, screen = FALSE)
+    annotations[i] <- pluck(output, "message", "content")
+  }
+  reviews$annotation <- annotations
+  return(reviews)
+}
+
+# Process and annotate the movie reviews
+annotated_reviews <- process_reviews(movie_reviews)
+
+# Print the annotated dataframe
+annotated_reviews
+#> # A tibble: 5 × 3
+#>   review_id review                                      annotation
+#>       <int> <chr>                                       <chr>     
+#> 1         1 A stunning visual spectacle with a grippin… "\nPositi…
+#> 2         2 The plot was predictable, but the acting w… "Positive"
+#> 3         3 An overrated film with underwhelming perfo… "Negative"
+#> 4         4 A beautiful tale of love and adventure, be… "Positive"
+#> 5         5 The movie lacked depth, but the special ef… "Negative"
+```
+
+This takes a little longer than classic supervised machine learning or even classification with transformer models.
+However, the advantage is that instructions can be provided using plain English, the models need very few examples to perform surprisingly well, and the best models, like `mixtral`, can often deal more complex categories than other approaches.
+
