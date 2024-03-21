@@ -1,6 +1,6 @@
 Package: rollama
 Title: Communicate with 'Ollama'
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: 
     c(person(given = "Johannes B.",
            family = "Gruber",
@@ -11,11 +11,11 @@ Authors@R:
            family = "Weber",
            role = c("aut", "ctb"),
            comment = c(ORCID = "0000-0002-1174-449X")))
-Description: Wraps the 'Ollama' <https://ollama.ai> API, which can be used to 
+Description: Wraps the 'Ollama' <https://ollama.com> API, which can be used to 
     communicate with generative large language models locally.
 License: GPL (>= 3)
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Imports: callr, cli, dplyr, httr2, jsonlite, methods, prettyunits,
         purrr, rlang, tibble
 Suggests: base64enc, knitr, rmarkdown, spelling, testthat (>= 3.0.0)
@@ -25,9 +25,9 @@ Language: en-US
 URL: https://jbgruber.github.io/rollama/,
         https://github.com/JBGruber/rollama
 NeedsCompilation: no
-Packaged: 2024-01-28 13:23:01 UTC; johannes
+Packaged: 2024-03-21 09:50:03 UTC; johannes
 Author: Johannes B. Gruber [aut, cre] (<https://orcid.org/0000-0001-9177-1772>),
   Maximilian Weber [aut, ctb] (<https://orcid.org/0000-0002-1174-449X>)
 Maintainer: Johannes B. Gruber <JohannesB.Gruber@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-01-29 17:10:03 UTC
+Date/Publication: 2024-03-21 10:10:02 UTC

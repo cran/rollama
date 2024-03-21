@@ -61,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -446,7 +446,7 @@ parse, you could change the assistant message to
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;{&#39;Category&#39;:&#39;Negative&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;terrible&#39;}&quot;</span>,</span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the service is great</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span></span>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>answer <span class="ot">&lt;-</span> <span class="fu">query</span>(q, <span class="at">model_params =</span> <span class="fu">list</span>(<span class="at">num_gpu =</span> <span class="dv">0</span>))</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>answer <span class="ot">&lt;-</span> <span class="fu">query</span>(q)</span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;great&#39;}</span></span></code></pre></div>
