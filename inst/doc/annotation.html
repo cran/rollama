@@ -50,7 +50,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -61,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -346,10 +346,10 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1>Introduction</h1>
 <p>After you installed Ollama on your machine and downloaded the package
 rollama you can load the package and pull the default model
-(<code>llama2</code>) by calling:</p>
+(<code>llama3</code>) by calling:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(rollama)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">pull_model</span>()</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt; ✔ model llama2 pulled succesfully</span></span></code></pre></div>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt; ✔ model llama3 pulled succesfully</span></span></code></pre></div>
 </div>
 <div id="prompting-strategies" class="section level1">
 <h1>Prompting Strategies</h1>
@@ -413,8 +413,8 @@ provide the categories).</p>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>)</span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; Category: Negative</span></span></code></pre></div>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; negative</span></span></code></pre></div>
 </div>
 <div id="one-shot" class="section level2">
 <h2>One-shot</h2>
@@ -432,7 +432,7 @@ classify.</p>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>)</span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; Category: Positive</span></span></code></pre></div>
 <p>A nice side effect of the one-shot strategy (and all
 n&gt;0-strategies) is that you can tune the format the model uses in its
@@ -448,8 +448,8 @@ parse, you could change the assistant message to
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>answer <span class="ot">&lt;-</span> <span class="fu">query</span>(q)</span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;great&#39;}</span></span></code></pre></div>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;: &#39;great&#39;}</span></span></code></pre></div>
 <p>This is a valid JSON return and can be parsed into a list with, e.g.,
 <code>jsonlite::fromJSON()</code>. By using
 <code>pluck(answer, &quot;message&quot;, &quot;content&quot;)</code>, you can directly
@@ -474,7 +474,7 @@ classify.</p>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; Category: Neutral</span></span></code></pre></div>
 </div>
 <div id="chain-of-thought" class="section level2">
@@ -489,19 +489,18 @@ classify and a reasoning question.</p>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>output_thought <span class="ot">&lt;-</span> <span class="fu">query</span>(q_thought)</span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; Based on the text &quot;the pizza tastes terrible,&quot; I would assign a sentiment of negative. Here&#39;s why:</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; * The use of the word &quot;tastes&quot; implies that the speaker has a strong opinion about the taste of the pizza, which is typically associated with negative</span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; emotions.</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; * The phrase &quot;terrible&quot; is a strong adjective that conveys a sense of disappointment or displeasure.</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; * The sentiment is further reinforced by the fact that the speaker used the word &quot;tastes,&quot; which implies a personal evaluation or judgment about the pizza&#39;s</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; taste, rather than a neutral description.</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; Overall, based on the language and structure of the sentence, it seems clear that the speaker has a negative sentiment towards the pizza.</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="fu">pluck</span>(output_thought, <span class="st">&quot;message&quot;</span>, <span class="st">&quot;content&quot;</span>)</span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; [1] &quot;\nBased on the text \&quot;the pizza tastes terrible,\&quot; I would assign a sentiment of negative. Here&#39;s why:\n\n* The use of the word \&quot;tastes\&quot; implies that the speaker has a strong opinion about the taste of the pizza, which is typically associated with negative emotions.\n* The phrase \&quot;terrible\&quot; is a strong adjective that conveys a sense of disappointment or displeasure.\n* The sentiment is further reinforced by the fact that the speaker used the word \&quot;tastes,\&quot; which implies a personal evaluation or judgment about the pizza&#39;s taste, rather than a neutral description.\n\nOverall, based on the language and structure of the sentence, it seems clear that the speaker has a negative sentiment towards the pizza.&quot;</span></span></code></pre></div>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; I would assign a **negative** sentiment to this text.</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; The use of the word &quot;terrible&quot; is quite strong and indicates that the</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; speaker has a very low opinion of the pizza&#39;s taste. The sentence</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; structure is also straightforward and lacks any mitigating language,</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; such as &quot;it&#39;s not my favorite&quot; or &quot;it&#39;s okay,&quot; which would suggest a</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; more neutral sentiment. Overall, the tone of the text is</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; overwhelmingly negative, suggesting that the speaker found the pizza</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; to be quite unpleasant.</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="fu">pluck</span>(output_thought, <span class="st">&quot;message&quot;</span>, <span class="st">&quot;content&quot;</span>)</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; [1] &quot;I would assign a **negative** sentiment to this text.\n\nThe use of the word \&quot;terrible\&quot; is quite strong and indicates that the speaker has a very low opinion of the pizza&#39;s taste. The sentence structure is also straightforward and lacks any mitigating language, such as \&quot;it&#39;s not my favorite\&quot; or \&quot;it&#39;s okay,\&quot; which would suggest a more neutral sentiment. Overall, the tone of the text is overwhelmingly negative, suggesting that the speaker found the pizza to be quite unpleasant.&quot;</span></span></code></pre></div>
 <p>In the next step we can use the assistant’s reasoning and a user
 prompt with the classification question.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
@@ -513,9 +512,8 @@ prompt with the classification question.</p>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>)</span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; Negative</span></span></code></pre></div>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; Negative</span></span></code></pre></div>
 </div>
 </div>
 <div id="batch-annotation" class="section level1">
@@ -571,9 +569,8 @@ categories for classification.</li>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>q_zs <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, <span class="at">examples =</span> <span class="fu">list</span>(), <span class="st">&quot;the pizza tastes terrible&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">query</span>(q_zs)</span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; Category: Negative</span></span></code></pre></div>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; negative</span></span></code></pre></div>
 </div>
 <div id="one-shot-example-with-one-example" class="section level3">
 <h3>One-shot example with one example</h3>
@@ -587,7 +584,7 @@ categories for classification.</li>
 <span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>q_os <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, examples_os, <span class="st">&quot;the service is great&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
 <span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">query</span>(q_os)</span>
 <span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
 <span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; Category: Positive</span></span></code></pre></div>
 </div>
 <div id="few-shot-example-with-multiple-examples" class="section level3">
@@ -611,8 +608,8 @@ new classification:</p>
 <span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>q_fs <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, examples_fs, <span class="st">&quot;I once ate pizza&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
 <span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="fu">query</span>(q_fs)</span>
 <span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; ── Answer ────────────────────────────────────────────────────────</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; Category: Positive</span></span></code></pre></div>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; Category: Neutral</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -636,13 +633,13 @@ columns:</p>
 <span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co"># Print the initial dataframe</span></span>
 <span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>movie_reviews</span>
 <span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 2</span></span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;   review_id review                                                </span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                                 </span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a gripping storyline.</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting was superb.  </span></span>
-<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performances.    </span></span>
-<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beautifully s…</span></span>
-<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effects were …</span></span></code></pre></div>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;   review_id review                                                    </span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                                     </span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a gripping storyline.    </span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting was superb.      </span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performances.        </span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beautifully shot. </span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effects were incr…</span></span></code></pre></div>
 <p>We define a system message and a classification question to guide the
 sentiment analysis:</p>
 <p>The function <code>process_reviews</code></p>
@@ -677,13 +674,13 @@ dataframe.</li>
 <span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co"># Print the annotated dataframe</span></span>
 <span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>annotated_reviews</span>
 <span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 3</span></span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt;   review_id review                                      annotation</span></span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                       &lt;chr&gt;     </span></span>
-<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a grippin… &quot;\nPositi…</span></span>
-<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting w… &quot;Positive&quot;</span></span>
-<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming perfo… &quot;Negative&quot;</span></span>
-<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, be… &quot;Positive&quot;</span></span>
-<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special ef… &quot;Negative&quot;</span></span></code></pre></div>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt;   review_id review                                          annotation</span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                           &lt;chr&gt;     </span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a gripping st… positive  </span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting was s… neutral   </span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performan… negative  </span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beauti… positive  </span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effect… neutral</span></span></code></pre></div>
 <p>This takes a little longer than classic supervised machine learning
 or even classification with transformer models. However, the advantage
 is that instructions can be provided using plain English, the models

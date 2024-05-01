@@ -4,12 +4,11 @@
 # `rollama` <img src="man/figures/logo.png" align="right" height="138" alt="rollama-logo" />
 
 <!-- badges: start -->
-
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/rollama)](https://CRAN.R-project.org/package=rollama)
 [![R-CMD-check](https://github.com/JBGruber/rollama/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JBGruber/rollama/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/JBGruber/rollama/branch/main/graph/badge.svg)](https://app.codecov.io/gh/JBGruber/rollama?branch=main)
+[![CRAN status](https://www.r-pkg.org/badges/version/rollama)](https://CRAN.R-project.org/package=rollama)
+[![CRAN_Download_Badge](https://cranlogs.r-pkg.org/badges/grand-total/rollama)](https://cran.r-project.org/package=rollama)
+[![arXiv:10.48550/arXiv.2404.07654](https://img.shields.io/badge/DOI-arXiv.2404.07654-B31B1B?logo=arxiv)](https://doi.org/10.48550/arXiv.2404.07654)
 [![say-thanks](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/JBGruber)
 <!-- badges: end -->
 
@@ -59,11 +58,17 @@ wget https://gist.githubusercontent.com/JBGruber/73f9f49f833c6171b8607b976abc0dd
 docker-compose up -d
 ```
 
+If you don’t know how to use Docker Compose, you can follow this video:
+
+[![Install Docker on macOS, Windows and
+Linux](https://img.youtube.com/vi/iMyCdd5nP5U/0.jpg)](https://www.youtube.com/watch?v=iMyCdd5nP5U)
+
 ## Example
 
 The first thing you should do after installation is to pull one of the
-models from <https://ollama.com/library>. By calling `pull_model()` 
-without arguments, you are pulling the (current) default model  --- "llama2 7b":
+models from <https://ollama.com/library>. By calling `pull_model()`
+without arguments, you are pulling the (current) default model — “llama2
+7b”:
 
 ``` r
 library(rollama)
@@ -81,7 +86,7 @@ as the beginning of a new chat:
 # ask a single question
 query("why is the sky blue?")
 #> 
-#> ── Answer ──────────────────────────────────────────────────────────────────────
+#> ── Answer from llama2 ──────────────────────────────────────────────────────────
 #> 
 #> The sky appears blue because of a phenomenon called Rayleigh scattering, which
 #> occurs when light travels through the Earth's atmosphere. In this process,
@@ -116,7 +121,7 @@ session as part of the same conversation:
 # hold a conversation
 chat("why is the sky blue?")
 #> 
-#> ── Answer ──────────────────────────────────────────────────────────────────────
+#> ── Answer from llama2 ──────────────────────────────────────────────────────────
 #> 
 #> The sky appears blue because of a phenomenon called Rayleigh scattering. When
 #> sunlight enters Earth's atmosphere, it encounters tiny molecules of gases such
@@ -144,7 +149,7 @@ chat("why is the sky blue?")
 #> wavelengths by tiny molecules in Earth's atmosphere.
 chat("and how do you know that?")
 #> 
-#> ── Answer ──────────────────────────────────────────────────────────────────────
+#> ── Answer from llama2 ──────────────────────────────────────────────────────────
 #> 
 #> I know that the sky appears blue due to Rayleigh scattering because it is a
 #> well-established scientific fact that has been observed, measured, and
@@ -188,12 +193,76 @@ do that like so:
 new_chat()
 ```
 
+## Model parameters
+
+You can set a number of model parameters, either by creating a new
+model, with a
+[modelfile](https://jbgruber.github.io/rollama/reference/create_model.html),
+or by including the parameters in the prompt:
+
+``` r
+query("why is the sky blue?", model_params = list(
+  seed = 42,
+  temperature = 0,
+  num_gpu = 0
+))
+#> 
+#> ── Answer from llama2 ──────────────────────────────────────────────────────────
+#> 
+#> The sky appears blue because of a phenomenon called Rayleigh scattering, which
+#> occurs when sunlight enters Earth's atmosphere. The sunlight encounters tiny
+#> molecules of gases such as nitrogen and oxygen, which scatter the light in all
+#> directions.
+#> 
+#> The shorter wavelengths of light, such as blue and violet, are scattered more
+#> than the longer wavelengths, such as red and orange. This is known as
+#> Rayleigh's Law. As a result, the blue light is dispersed throughout the
+#> atmosphere, giving the sky its blue appearance.
+#> 
+#> The reason why the sky appears blue under these conditions is due to the way
+#> that our eyes perceive colors. When white light enters our eyes, it is filtered
+#> through the lens and hits the retina, which contains cells called cone cells
+#> that are sensitive to different wavelengths of light. The cells are most
+#> sensitive to the blue and violet end of the spectrum, so when we look at a blue
+#> sky, our brains interpret this as the dominant color.
+#> 
+#> It's worth noting that the appearance of the sky can vary depending on a number
+#> of factors, including the time of day, the amount of dust and water vapor in
+#> the air, and the angle of the sun. For example, during sunrise and sunset, the
+#> sky can take on hues of red, orange, and pink due to the scattering of light by
+#> atmospheric particles.
+#> 
+#> In summary, the sky appears blue because of the way that light is scattered in
+#> the atmosphere, and how our eyes perceive colors.
+```
+
+#### Valid Parameters and Values
+
+| Parameter      | Description                                                                                                                                                                                                                                             | Value Type | Example Usage        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | -------------------- |
+| mirostat       | Enable Mirostat sampling for controlling perplexity. (default: 0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0)                                                                                                                                         | int        | mirostat 0           |
+| mirostat_eta   | Influences how quickly the algorithm responds to feedback from the generated text. A lower learning rate will result in slower adjustments, while a higher learning rate will make the algorithm more responsive. (Default: 0.1)                        | float      | mirostat_eta 0.1     |
+| mirostat_tau   | Controls the balance between coherence and diversity of the output. A lower value will result in more focused and coherent text. (Default: 5.0)                                                                                                         | float      | mirostat_tau 5.0     |
+| num_ctx        | Sets the size of the context window used to generate the next token. (Default: 2048)                                                                                                                                                                    | int        | num_ctx 4096         |
+| num_gqa        | The number of GQA groups in the transformer layer. Required for some models, for example it is 8 for llama2:70b                                                                                                                                         | int        | num_gqa 1            |
+| num_gpu        | The number of layers to send to the GPU(s). On macOS it defaults to 1 to enable metal support, 0 to disable.                                                                                                                                            | int        | num_gpu 50           |
+| num_thread     | Sets the number of threads to use during computation. By default, Ollama will detect this for optimal performance. It is recommended to set this value to the number of physical CPU cores your system has (as opposed to the logical number of cores). | int        | num_thread 8         |
+| repeat_last_n  | Sets how far back for the model to look back to prevent repetition. (Default: 64, 0 = disabled, -1 = num_ctx)                                                                                                                                           | int        | repeat_last_n 64     |
+| repeat_penalty | Sets how strongly to penalize repetitions. A higher value (e.g., 1.5) will penalize repetitions more strongly, while a lower value (e.g., 0.9) will be more lenient. (Default: 1.1)                                                                     | float      | repeat_penalty 1.1   |
+| temperature    | The temperature of the model. Increasing the temperature will make the model answer more creatively. (Default: 0.8)                                                                                                                                     | float      | temperature 0.7      |
+| seed           | Sets the random number seed to use for generation. Setting this to a specific number will make the model generate the same text for the same prompt. (Default: 0)                                                                                       | int        | seed 42              |
+| stop           | Sets the stop sequences to use. When this pattern is encountered the LLM will stop generating text and return. Multiple stop patterns may be set by specifying multiple separate `stop` parameters in a modelfile.                                      | string     | stop "AI assistant:" |
+| tfs_z          | Tail free sampling is used to reduce the impact of less probable tokens from the output. A higher value (e.g., 2.0) will reduce the impact more, while a value of 1.0 disables this setting. (default: 1)                                               | float      | tfs_z 1              |
+| num_predict    | Maximum number of tokens to predict when generating text. (Default: 128, -1 = infinite generation, -2 = fill context)                                                                                                                                   | int        | num_predict 42       |
+| top_k          | Reduces the probability of generating nonsense. A higher value (e.g. 100) will give more diverse answers, while a lower value (e.g. 10) will be more conservative. (Default: 40)                                                                        | int        | top_k 40             |
+| top_p          | Works together with top-k. A higher value (e.g., 0.95) will lead to more diverse text, while a lower value (e.g., 0.5) will generate more focused and conservative text. (Default: 0.9)                                                                 | float      | top_p 0.9            |
+
 ## Configuration
 
 You can configure the server address, the system prompt and the model
 used for a query or chat. If not configured otherwise, `rollama` assumes
 you are using the default port (11434) of a local instance
-("http://localhost""). Let’s make this explicit by setting the option:
+(“localhost”). Let’s make this explicit by setting the option:
 
 ``` r
 options(rollama_server = "http://localhost:11434")
@@ -206,7 +275,7 @@ message in plain English (or another language supported by the model):
 options(rollama_config = "You make answers understandable to a 5 year old")
 query("why is the sky blue?")
 #> 
-#> ── Answer ──────────────────────────────────────────────────────────────────────
+#> ── Answer from llama2 ──────────────────────────────────────────────────────────
 #> Oh, wow! That's a great question! *giggles* You know what? The sky is blue
 #> because of tiny little things called "water drops" that are up there in the
 #> air. They reflect sunlight and make the sky look blue! Just like when you hold
@@ -217,17 +286,18 @@ query("why is the sky blue?")
 #> that's why the sky is blue! Isn't that amazing? 😍
 ```
 
-By default, the package uses the "llama2 7B" model. Supported models can be found 
-at <https://ollama.com/library>. To download a specific model make use of the additional 
-information available in "Tags" <https://ollama.com/library/mistral/tags>.
-Change this via `rollama_model`:
+By default, the package uses the “llama2 7B” model. Supported models can
+be found at <https://ollama.com/library>. To download a specific model
+make use of the additional information available in “Tags”
+<https://ollama.com/library/mistral/tags>. Change this via
+`rollama_model`:
 
 ``` r
 options(rollama_model = "mixtral")
 # if you don't have the model yet: pull_model("mixtral")
 query("why is the sky blue?")
 #> 
-#> ── Answer ──────────────────────────────────────────────────────────────────────
+#> ── Answer from mixtral ─────────────────────────────────────────────────────────
 #> When the sun shines, it sends out little bits of light called "sunlight."
 #> Sunlight is made up of different colors, like red, orange, yellow, green, blue,
 #> and purple. You can see all these colors in a rainbow!

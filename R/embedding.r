@@ -2,8 +2,11 @@
 #'
 #' @param text text vector to generate embeddings for.
 #' @param model which model to use. See <https://ollama.com/library> for options.
-#'   Default is "llama2". Set option(rollama_model = "modelname") to change
+#'   Default is "llama3". Set option(rollama_model = "modelname") to change
 #'   default for the current session. See \link{pull_model} for more details.
+#' @param model_params a named list of additional model parameters listed in the
+#'   [documentation for the
+#'   Modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values).
 #' @param verbose Whether to print status messages to the Console
 #'   (\code{TRUE}/\code{FALSE}). The default is to have status messages in
 #'   interactive sessions. Can be changed with \code{options(rollama_verbose =
@@ -24,7 +27,7 @@ embed_text <- function(text,
                        model_params = NULL,
                        verbose = getOption("rollama_verbose", default = interactive())) {
 
-  if (is.null(model)) model <- getOption("rollama_model", default = "llama2")
+  if (is.null(model)) model <- getOption("rollama_model", default = "llama3")
   if (is.null(server)) server <- getOption("rollama_server", default = "http://localhost:11434")
   if (verbose) cli::cli_progress_bar(
     total = length(text),

@@ -7,7 +7,7 @@
 #'
 #' @param q the question as a character string or a conversation object.
 #' @param model which model(s) to use. See <https://ollama.com/library> for
-#'   options. Default is "llama2". Set option(rollama_model = "modelname") to
+#'   options. Default is "llama3". Set option(rollama_model = "modelname") to
 #'   change default for the current session. See \link{pull_model} for more
 #'   details.
 #' @param screen Logical. Should the answer be printed to the screen.
@@ -15,7 +15,12 @@
 #'   "http://localhost:11434".
 #' @param images path(s) to images (for multimodal models such as llava).
 #' @param model_params a named list of additional model parameters listed in the
-#'   documentation for the Modelfile such as temperature.
+#'   [documentation for the
+#'   Modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values)
+#'   such as temperature. Use a seed and set the temperature to zero to get
+#'   reproducible results (see examples).
+#' @param format the format to return a response in. Currently the only accepted
+#'   value is `"json"`.
 #' @param template the prompt template to use (overrides what is defined in the
 #'   Modelfile).
 #'
@@ -79,6 +84,9 @@
 #'         num_thread = 8
 #'       ))
 #'
+#' # use a seed and zero temperature to get reproducible results
+#' query("why is the sky blue?", model_params = list(seed = 42, temperature = 0)
+#'
 #' # this might be interesting if you want to turn off the GPU and load the
 #' # model into the system memory (slower, but most people have more RAM than
 #' # VRAM, which might be interesting for larger models)
@@ -90,7 +98,7 @@
 #'       template = "Just say I'm a llama!")
 #'
 #' # Asking the same question to multiple models is also supported
-#' query("why is the sky blue?", model = c("llama2", "orca-mini"))
+#' query("why is the sky blue?", model = c("llama3", "orca-mini"))
 #' }
 query <- function(q,
                   model = NULL,
@@ -98,6 +106,7 @@ query <- function(q,
                   server = NULL,
                   images = NULL,
                   model_params = NULL,
+                  format = NULL,
                   template = NULL) {
 
   if (!is.null(template))
@@ -133,9 +142,8 @@ query <- function(q,
                     server = server,
                     images = images,
                     model_params = model_params,
+                    format = format,
                     template = template)
-
-  purrr::map(resp, "message", "content")
 
   if (screen) purrr::map(resp, function(r) {
     screen_answer(purrr::pluck(r, "message", "content"),

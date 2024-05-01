@@ -12,6 +12,7 @@ query(
   server = NULL,
   images = NULL,
   model_params = NULL,
+  format = NULL,
   template = NULL
 )
 
@@ -29,7 +30,7 @@ chat(
 \item{q}{the question as a character string or a conversation object.}
 
 \item{model}{which model(s) to use. See \url{https://ollama.com/library} for
-options. Default is "llama2". Set option(rollama_model = "modelname") to
+options. Default is "llama3". Set option(rollama_model = "modelname") to
 change default for the current session. See \link{pull_model} for more
 details.}
 
@@ -41,7 +42,12 @@ details.}
 \item{images}{path(s) to images (for multimodal models such as llava).}
 
 \item{model_params}{a named list of additional model parameters listed in the
-documentation for the Modelfile such as temperature.}
+\href{https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values}{documentation for the Modelfile}
+such as temperature. Use a seed and set the temperature to zero to get
+reproducible results (see examples).}
+
+\item{format}{the format to return a response in. Currently the only accepted
+value is \code{"json"}.}
 
 \item{template}{the prompt template to use (overrides what is defined in the
 Modelfile).}
@@ -114,6 +120,9 @@ query("why is the sky blue?",
         num_thread = 8
       ))
 
+# use a seed and zero temperature to get reproducible results
+query("why is the sky blue?", model_params = list(seed = 42, temperature = 0)
+
 # this might be interesting if you want to turn off the GPU and load the
 # model into the system memory (slower, but most people have more RAM than
 # VRAM, which might be interesting for larger models)
@@ -125,6 +134,6 @@ query("why is the sky blue?",
       template = "Just say I'm a llama!")
 
 # Asking the same question to multiple models is also supported
-query("why is the sky blue?", model = c("llama2", "orca-mini"))
+query("why is the sky blue?", model = c("llama3", "orca-mini"))
 }
 }

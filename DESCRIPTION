@@ -1,6 +1,6 @@
 Package: rollama
 Title: Communicate with 'Ollama'
-Version: 0.0.3
+Version: 0.1.0
 Authors@R: 
     c(person(given = "Johannes B.",
            family = "Gruber",
@@ -18,16 +18,18 @@ Encoding: UTF-8
 RoxygenNote: 7.3.1
 Imports: callr, cli, dplyr, httr2, jsonlite, methods, prettyunits,
         purrr, rlang, tibble
-Suggests: base64enc, knitr, rmarkdown, spelling, testthat (>= 3.0.0)
+Suggests: base64enc, covr, knitr, rmarkdown, spelling, testthat (>=
+        3.0.0)
+Depends: R (>= 4.1.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Language: en-US
 URL: https://jbgruber.github.io/rollama/,
         https://github.com/JBGruber/rollama
 NeedsCompilation: no
-Packaged: 2024-03-21 09:50:03 UTC; johannes
+Packaged: 2024-05-01 07:04:33 UTC; johannes
 Author: Johannes B. Gruber [aut, cre] (<https://orcid.org/0000-0001-9177-1772>),
   Maximilian Weber [aut, ctb] (<https://orcid.org/0000-0002-1174-449X>)
 Maintainer: Johannes B. Gruber <JohannesB.Gruber@gmail.com>
 Repository: CRAN
-Date/Publication: 2024-03-21 10:10:02 UTC
+Date/Publication: 2024-05-01 07:20:02 UTC

@@ -14,7 +14,7 @@ test_that("create model", {
   skip_if_not(ping_ollama(silent = TRUE))
   expect_equal(nrow(create_model(
     model = "mario",
-    modelfile = "FROM llama2\nSYSTEM You are mario from Super Mario Bros."
+    modelfile = "FROM llama3\nSYSTEM You are mario from Super Mario Bros."
   )), 1L)
 })
 
@@ -31,4 +31,11 @@ test_that("delete model", {
   expect_message(delete_model("mario-copy"),
                  "model.mario-copy.removed")
 })
+
+test_that("model missing", {
+  skip_if_not(ping_ollama(silent = TRUE))
+  expect_error(check_model_installed("NOMODEL"),
+               "Model NOMODEL not installed.")
+})
+
 
