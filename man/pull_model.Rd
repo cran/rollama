@@ -7,7 +7,12 @@
 \alias{copy_model}
 \title{Pull, show and delete models}
 \usage{
-pull_model(model = NULL, server = NULL, insecure = FALSE)
+pull_model(
+  model = NULL,
+  server = NULL,
+  insecure = FALSE,
+  verbose = getOption("rollama_verbose", default = interactive())
+)
 
 show_model(model = NULL, server = NULL)
 
@@ -16,14 +21,18 @@ delete_model(model, server = NULL)
 copy_model(model, destination = paste0(model, "-copy"), server = NULL)
 }
 \arguments{
-\item{model}{name of the model. Defaults to "llama3" when \code{NULL} (except in
-\code{delete_model}).}
+\item{model}{name of the model(s). Defaults to "llama3.1" when \code{NULL} (except
+in \code{delete_model}).}
 
-\item{server}{URL to an Ollama server (not the API). Defaults to
+\item{server}{URL to one or several Ollama servers (not the API). Defaults to
 "http://localhost:11434".}
 
 \item{insecure}{allow insecure connections to the library. Only use this if
-you are pulling from your own library during development. description}
+you are pulling from your own library during development.}
+
+\item{verbose}{Whether to print status messages to the Console
+(\code{TRUE}/\code{FALSE}). The default is to have status messages in
+interactive sessions. Can be changed with \code{options(rollama_verbose = FALSE)}.}
 
 \item{destination}{name of the copied model.}
 }
@@ -44,13 +53,16 @@ Pull, show and delete models
 
 \strong{Model names}: Model names follow a model:tag format, where model can have
 an optional namespace such as example/model. Some examples are
-orca-mini:3b-q4_1 and llama3:70b. The tag is optional and, if not provided,
+orca-mini:3b-q4_1 and llama3.1:70b. The tag is optional and, if not provided,
 will default to latest. The tag is used to identify a specific version.
 }
 \examples{
 \dontrun{
+# download a model and save information in an object
 model_info <- pull_model("mixtral")
 # after you pull, you can get the same information with:
 model_info <- show_model("mixtral")
+# pulling models from Hugging Face Hub is also possible
+pull_model("https://huggingface.co/oxyapi/oxy-1-small-GGUF:Q2_K")
 }
 }

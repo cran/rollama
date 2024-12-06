@@ -8,13 +8,20 @@ test_that("pull model", {
 test_that("show model", {
   skip_if_not(ping_ollama(silent = TRUE))
   expect_equal(nrow(show_model()), 1L)
+  expect_equal(ncol(list_models()), 11L)
+  expect_s3_class(list_models(), "tbl_df")
 })
 
 test_that("create model", {
   skip_if_not(ping_ollama(silent = TRUE))
   expect_equal(nrow(create_model(
     model = "mario",
-    modelfile = "FROM llama3\nSYSTEM You are mario from Super Mario Bros."
+    modelfile = "FROM llama3.1\nSYSTEM You are mario from Super Mario Bros."
+  )), 1L)
+  # also test modelfile
+  expect_equal(nrow(create_model(
+    model = "mario",
+    modelfile = system.file("extdata", "modelfile.txt", package = "rollama")
   )), 1L)
 })
 
@@ -37,5 +44,3 @@ test_that("model missing", {
   expect_error(check_model_installed("NOMODEL"),
                "Model NOMODEL not installed.")
 })
-
-

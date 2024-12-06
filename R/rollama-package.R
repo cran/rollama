@@ -7,9 +7,8 @@ the <- new.env()
 #' @title rollama Options
 #' @name rollama-options
 #'
-#' @description
-#' The behaviour of `rollama` can be controlled through `options()`. Specifically,
-#' the options below can be set.
+#' @description The behaviour of `rollama` can be controlled through
+#' `options()`. Specifically, the options below can be set.
 #'
 #' @details
 #' \describe{
@@ -19,10 +18,10 @@ the <- new.env()
 #'   \item{default:}{\code{"http://localhost:11434"}}
 #' }}
 #' \item{rollama_model}{\describe{
-#'   The default model is llama3, which is a good overall option with reasonable
+#'   The default model is llama3.1, which is a good overall option with reasonable
 #'   performance and size for most tasks. You can change the model in each
 #'   function call or globally with this option.
-#'   \item{default:}{\code{"llama3"}}
+#'   \item{default:}{\code{"llama3.1"}}
 #' }}
 #' \item{rollama_verbose}{\describe{
 #'   Whether the package tells users what is going on, e.g., showing a spinner

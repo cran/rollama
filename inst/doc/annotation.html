@@ -50,7 +50,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -61,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -345,11 +345,17 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>After you installed Ollama on your machine and downloaded the package
-rollama you can load the package and pull the default model
-(<code>llama3</code>) by calling:</p>
+rollama you can load the package and pull a model. The default model
+(<code>llama3.1</code>), is a good all-round chat model. For annotation,
+however, the instruction tuned llama models are often better suited, as
+they follow instructions more diligently and are less likely to trail
+off into a conversation. By changing the option
+<code>rollama_model</code>, we can change which model is used by default
+in the current session:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(rollama)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">pull_model</span>()</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#&gt; ✔ model llama3 pulled succesfully</span></span></code></pre></div>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">options</span>(<span class="at">rollama_model =</span> <span class="st">&quot;llama3.2:3b-instruct-q8_0&quot;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">pull_model</span>()</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#&gt; ✔ model llama3.2:3b-instruct-q8_0 pulled succesfully</span></span></code></pre></div>
 </div>
 <div id="prompting-strategies" class="section level1">
 <h1>Prompting Strategies</h1>
@@ -413,7 +419,7 @@ provide the categories).</p>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>)</span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; negative</span></span></code></pre></div>
 </div>
 <div id="one-shot" class="section level2">
@@ -432,28 +438,40 @@ classify.</p>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>)</span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; Category: Positive</span></span></code></pre></div>
 <p>A nice side effect of the one-shot strategy (and all
 n&gt;0-strategies) is that you can tune the format the model uses in its
-replies. For example, if you want to have an output that is easy to
-parse, you could change the assistant message to
-<code>&quot;{&#39;Category&#39;:&#39;Negative&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;terrible&#39;}&quot;</code></p>
+replies. For example, if you want to have an output that easy to parse,
+you could change the assistant message to
+<code>&quot;{&#39;Category&#39;:&#39;Negative&#39;}&quot;</code></p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;{&#39;Category&#39;:&#39;Negative&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;terrible&#39;}&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;{&#39;Category&#39;:&#39;Negative&#39;}&quot;</span>,</span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the service is great</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span></span>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>answer <span class="ot">&lt;-</span> <span class="fu">query</span>(q)</span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;: &#39;great&#39;}</span></span></code></pre></div>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;}</span></span></code></pre></div>
 <p>This is a valid JSON return and can be parsed into a list with, e.g.,
-<code>jsonlite::fromJSON()</code>. By using
-<code>pluck(answer, &quot;message&quot;, &quot;content&quot;)</code>, you can directly
-extract the result and don’t need to copy it from screen.</p>
+<code>jsonlite::fromJSON()</code>. Using this logic, we could request a
+more informative output:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. Provide the following information: category, confidence, and the word that is most important for your coding decision.&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;{&#39;Category&#39;:&#39;Negative&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;terrible&#39;}&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the service is great</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>answer <span class="ot">&lt;-</span> <span class="fu">query</span>(q)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; {&#39;Category&#39;:&#39;Positive&#39;,&#39;Confidence&#39;:&#39;100%&#39;,&#39;Important&#39;:&#39;great&#39;}</span></span></code></pre></div>
+<p>By using <code>pluck(answer, &quot;message&quot;, &quot;content&quot;)</code>, you can
+directly extract the result and don’t need to copy it from screen.</p>
 </div>
 <div id="few-shot" class="section level2">
 <h2>Few-shot</h2>
@@ -461,160 +479,184 @@ extract the result and don’t need to copy it from screen.</p>
 structure is similar to one-shot but with several iterations of user and
 assistant messages providing examples before the final text to
 classify.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Negative&quot;</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the service is great</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Positive&quot;</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: I once came here with my wife</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Neutral&quot;</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: I once ate pizza</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="fu">query</span>(q)</span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; Category: Neutral</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Negative&quot;</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: the service is great</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Positive&quot;</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: I once came here with my wife</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, <span class="st">&quot;Category: Neutral&quot;</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>, <span class="st">&quot;text: I once ate pizza</span><span class="sc">\n</span><span class="st">categories: positive, neutral, negative&quot;</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="fu">query</span>(q)</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; Category: Neutral</span></span></code></pre></div>
 </div>
 <div id="chain-of-thought" class="section level2">
 <h2>Chain-of-Thought</h2>
 <p>This approach involves at least one reasoning step. The structure
 here starts with the system prompt, then a user prompt with a text to
 classify and a reasoning question.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>q_thought <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. &quot;</span>,</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">What sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.&quot;</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>output_thought <span class="ot">&lt;-</span> <span class="fu">query</span>(q_thought)</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; I would assign a **negative** sentiment to this text.</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; The use of the word &quot;terrible&quot; is quite strong and indicates that the</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; speaker has a very low opinion of the pizza&#39;s taste. The sentence</span></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; structure is also straightforward and lacks any mitigating language,</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; such as &quot;it&#39;s not my favorite&quot; or &quot;it&#39;s okay,&quot; which would suggest a</span></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; more neutral sentiment. Overall, the tone of the text is</span></span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; overwhelmingly negative, suggesting that the speaker found the pizza</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; to be quite unpleasant.</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="fu">pluck</span>(output_thought, <span class="st">&quot;message&quot;</span>, <span class="st">&quot;content&quot;</span>)</span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; [1] &quot;I would assign a **negative** sentiment to this text.\n\nThe use of the word \&quot;terrible\&quot; is quite strong and indicates that the speaker has a very low opinion of the pizza&#39;s taste. The sentence structure is also straightforward and lacks any mitigating language, such as \&quot;it&#39;s not my favorite\&quot; or \&quot;it&#39;s okay,\&quot; which would suggest a more neutral sentiment. Overall, the tone of the text is overwhelmingly negative, suggesting that the speaker found the pizza to be quite unpleasant.&quot;</span></span></code></pre></div>
-<p>In the next step we can use the assistant’s reasoning and a user
-prompt with the classification question.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>q_thought <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. &quot;</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">What sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.&quot;</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, output_thought<span class="sc">$</span>message<span class="sc">$</span>content,</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;Now answer with just the correct category (positive, neutral, or negative)&quot;</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>)</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="fu">query</span>(q)</span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; Negative</span></span></code></pre></div>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">What sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.&quot;</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>output_thought <span class="ot">&lt;-</span> <span class="fu">query</span>(q_thought, <span class="at">output =</span> <span class="st">&quot;text&quot;</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; I would assign a negative sentiment to this text.</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; Here&#39;s why:</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; * The word &quot;terrible&quot; is a strong adjective that conveys a strong</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; negative opinion.</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; * The tone of the sentence is also quite critical and dismissive.</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; * There are no positive or neutral phrases in the text, which</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt; suggests that the author has a clear dislike for the pizza.</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; Overall, the language and tone used in this text indicate a strong</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; negative sentiment towards the pizza.</span></span></code></pre></div>
+<p>In the next step we can use the assistant’s reasoning and a user
+prompt with the classification question.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="st">&quot;system&quot;</span>, <span class="st">&quot;You assign texts into categories. &quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;text: the pizza tastes terrible</span><span class="sc">\n</span><span class="st">What sentiment (positive, neutral, or negative) would you assign? Provide some thoughts.&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="st">&quot;assistant&quot;</span>, output_thought,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="st">&quot;user&quot;</span>,   <span class="st">&quot;Now answer with just the correct category (positive, neutral, or negative)&quot;</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>resps <span class="ot">&lt;-</span> <span class="fu">query</span>(q)</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; Negative</span></span></code></pre></div>
 </div>
-</div>
-<div id="batch-annotation" class="section level1">
-<h1>Batch annotation</h1>
-<p>In practice, you probably never want to annotate just one text. In
-this section, we show you how you can wrap <code>rollama::query()</code>
-into another function to ask the model to annotate a batch of texts. We
-might add this function to the package in the future, but at the moment,
-we want to keep it simple.</p>
-<div id="function-to-create-a-query" class="section level2">
-<h2>Function to create a query</h2>
-<p>The <code>create_query</code> function is designed to facilitate the
-creation of a structured query for text classification.</p>
+<div id="the-make_query-helper-function" class="section level2">
+<h2>The <code>make_query</code> helper function</h2>
+<p>The <code>make_query</code> function is designed to facilitate the
+creation of a structured query for text classification, so that you do
+not need to build the tibble yourself and remember the specific
+structure.</p>
 <p>Components:</p>
 <ul>
-<li><strong>System Message</strong>: Provides context or instructions
-for the classification task.</li>
-<li><strong>Examples</strong>: Prior examples consisting of user
+<li><strong>text</strong> to Classify: The new text(s) to be
+annotated.</li>
+<li><strong>prompt</strong>: Classification question with the categories
+to be annotated.</li>
+<li><strong>template</strong>: Defines the structure for user messages.
+Defines the structure for user messages. The template can include
+placeholders like {text}, {prefix}, and {suffix} to dynamically format
+input.</li>
+<li><strong>system</strong>: System Prompt: Provides context or
+instructions for the classification task (optional).</li>
+<li><strong>prefix</strong>: A string to prepend to user queries
+(optional).</li>
+<li><strong>suffix</strong>: A string to append to user queries
+(optional).</li>
+<li><strong>examples</strong>: Prior examples consisting of user
 messages and assistant responses (for one-shot and few-shot
-learning).</li>
-<li><strong>Text to Classify</strong>: The new text to be
-categorized.</li>
-<li><strong>Classification Question</strong>: Lists the possible
-categories for classification.</li>
+learning)(optional).</li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>create_query <span class="ot">&lt;-</span> <span class="cf">function</span>(systemmsg, examples, texttoclassify, classification_question) {</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="co"># Start with the system message</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  q <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="sc">~</span>role,    <span class="sc">~</span>content,</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>    <span class="st">&quot;system&quot;</span>, systemmsg</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  )</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="co"># Add examples (if any), appending the classification question to the user messages</span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="cf">for</span>(example <span class="cf">in</span> examples) {</span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    usermsg_with_question <span class="ot">&lt;-</span> <span class="fu">paste</span>(example<span class="sc">$</span>usermsg, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>, classification_question)</span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>    q <span class="ot">&lt;-</span> <span class="fu">add_row</span>(q, <span class="at">role =</span> <span class="st">&quot;user&quot;</span>, <span class="at">content =</span> usermsg_with_question)</span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>    q <span class="ot">&lt;-</span> <span class="fu">add_row</span>(q, <span class="at">role =</span> <span class="st">&quot;assistant&quot;</span>, <span class="at">content =</span> example<span class="sc">$</span>assistantmsg)</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  }</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="co"># Add the current text to classify along with the classification question</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>  usermsg_final <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="st">&quot;text:&quot;</span>, texttoclassify, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>, classification_question)</span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>  q <span class="ot">&lt;-</span> <span class="fu">add_row</span>(q, <span class="at">role =</span> <span class="st">&quot;user&quot;</span>, <span class="at">content =</span> usermsg_final)</span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>  <span class="fu">return</span>(q)</span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="example-usage" class="section level2">
 <h2>Example usage</h2>
 <div id="zero-shot-example" class="section level3">
 <h3>Zero-shot example</h3>
 <p>In this example, the function is used without any examples.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>systemmsg <span class="ot">&lt;-</span> <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span></span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>q_zs <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, <span class="at">examples =</span> <span class="fu">list</span>(), <span class="st">&quot;the pizza tastes terrible&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">query</span>(q_zs)</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; negative</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Call the make_query function</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>q_zs <span class="ot">&lt;-</span> <span class="fu">make_query</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">template =</span> <span class="st">&quot;{text}</span><span class="sc">\n</span><span class="st">{prompt}&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">text =</span> <span class="st">&quot;the pizza tastes terrible&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">prompt =</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">system =</span> <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co"># Print the query</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="fu">print</span>(q_zs)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; # A tibble: 2 × 2</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt;   role   content                                                      </span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;  &lt;glue&gt;                                                       </span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; 1 system You assign texts into categories. Answer with just the corre…</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; 2 user   the pizza tastes terrible</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; Categories: positive, neutral, nega…</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co"># Run the query</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="fu">query</span>(q_zs)</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; negative</span></span></code></pre></div>
 </div>
-<div id="one-shot-example-with-one-example" class="section level3">
-<h3>One-shot example with one example</h3>
+<div id="one-shot-example" class="section level3">
+<h3>One-shot example</h3>
 <p>Here, one prior example is provided to aid the classification:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>examples_os <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>    <span class="at">usermsg =</span> <span class="st">&quot;text: the pizza tastes terrible&quot;</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>    <span class="at">assistantmsg =</span> <span class="st">&quot;Category: Negative&quot;</span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  )</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>)</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>q_os <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, examples_os, <span class="st">&quot;the service is great&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">query</span>(q_os)</span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; Category: Positive</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>examples_os <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="sc">~</span>text, <span class="sc">~</span>answer,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="st">&quot;the pizza tastes terrible&quot;</span>, <span class="st">&quot;negative&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>q_os <span class="ot">&lt;-</span> <span class="fu">make_query</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">text =</span> <span class="st">&quot;the service is great&quot;</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">template =</span> <span class="st">&quot;{text}</span><span class="sc">\n</span><span class="st">{prompt}&quot;</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="at">prompt =</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">system =</span> <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">example =</span> examples_os,</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="fu">print</span>(q_os)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; [[1]]</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 2</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt;   role      content                                                   </span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;     &lt;glue&gt;                                                    </span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; 1 system    You assign texts into categories. Answer with just the co…</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt; 2 user      the pizza tastes terrible</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt; Categories: positive, neutral, n…</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; 3 assistant negative                                                  </span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt; 4 user      the service is great</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt; Categories: positive, neutral, negati…</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="fu">query</span>(q_os)</span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="co">#&gt; positive</span></span></code></pre></div>
 </div>
 <div id="few-shot-example-with-multiple-examples" class="section level3">
 <h3>Few-shot example with multiple examples</h3>
 <p>This scenario uses multiple examples to enrich the context for the
 new classification:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>examples_fs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>    <span class="at">usermsg =</span> <span class="st">&quot;text: the pizza tastes terrible&quot;</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="at">assistantmsg =</span> <span class="st">&quot;Category: Negative&quot;</span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  ),</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="at">usermsg =</span> <span class="st">&quot;text: the service is great&quot;</span>,</span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="at">assistantmsg =</span> <span class="st">&quot;Category: Positive&quot;</span></span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  ),</span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    <span class="at">usermsg =</span> <span class="st">&quot;text: I once came here with my wife&quot;</span>,</span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>    <span class="at">assistantmsg =</span> <span class="st">&quot;Category: Neutral&quot;</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  )</span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>examples_fs <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tribble</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="sc">~</span>text, <span class="sc">~</span>answer,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="st">&quot;the pizza tastes terrible&quot;</span>, <span class="st">&quot;negative&quot;</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="st">&quot;the service is great&quot;</span>, <span class="st">&quot;positive&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="st">&quot;I once came here with my wife&quot;</span>, <span class="st">&quot;neutral&quot;</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>q_fs <span class="ot">&lt;-</span> <span class="fu">make_query</span>(</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="at">text =</span> <span class="st">&quot;I once ate pizza&quot;</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">prompt =</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="at">template =</span> <span class="st">&quot;{text}</span><span class="sc">\n</span><span class="st">{prompt}&quot;</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  <span class="at">system =</span> <span class="st">&quot;You assign texts into categories. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  <span class="at">examples =</span> examples_fs</span>
 <span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>)</span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>q_fs <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, examples_fs, <span class="st">&quot;I once ate pizza&quot;</span>, <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a></span>
 <span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="fu">query</span>(q_fs)</span>
 <span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3 ────────────────────────────────────────────────</span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; Category: Neutral</span></span></code></pre></div>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; ── Answer from llama3.2:3b-instruct-q8_0 ─────────────────────────────</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; neutral</span></span></code></pre></div>
 </div>
 </div>
 </div>
-<div id="another-example-using-a-dataframe" class="section level1">
-<h1>Another example using a dataframe</h1>
+<div id="batch-annotation" class="section level1">
+<h1>Batch annotation</h1>
+<p>In practice, you probably never want to annotate just one text,
+except maybe for testing. Instead you normally have a collections of
+texts, which is why <code>make_query</code> takes a vector for the
+<code>text</code> argument. In this section, we highlight how this is
+useful with an example batch of texts.</p>
+</div>
+<div id="example-using-a-dataframe" class="section level1">
+<h1>Example using a dataframe</h1>
 <p>This example demonstrates how to perform sentiment analysis on a set
 of movie reviews. The process involves creating a dataframe of reviews,
 processing each review to classify its sentiment, and appending the
@@ -622,7 +664,7 @@ results as a new column in the dataframe.</p>
 <p>We create a dataframe named <code>movie_reviews</code> with two
 columns:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># Create an example dataframe with 5 movie reviews</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>movie_reviews <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>movie_reviews <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
 <span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">review_id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">review =</span> <span class="fu">c</span>(<span class="st">&quot;A stunning visual spectacle with a gripping storyline.&quot;</span>,</span>
 <span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>             <span class="st">&quot;The plot was predictable, but the acting was superb.&quot;</span>,</span>
@@ -640,52 +682,63 @@ columns:</p>
 <span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performances.        </span></span>
 <span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beautifully shot. </span></span>
 <span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effects were incr…</span></span></code></pre></div>
-<p>We define a system message and a classification question to guide the
-sentiment analysis:</p>
-<p>The function <code>process_reviews</code></p>
-<ul>
-<li>Iterates through each review.</li>
-<li>Constructs a query using <code>create_query</code>.</li>
-<li>Obtains sentiment classification (by <code>query(q)</code>
-function).</li>
-<li>Stores the result in the <code>annotations</code> vector.</li>
-<li>Appends <code>annotations</code> as a new column in the
-dataframe.</li>
-</ul>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>systemmsg <span class="ot">&lt;-</span> <span class="st">&quot;Classify the sentiment of the movie review. Answer with just the correct category.&quot;</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>classification_question <span class="ot">&lt;-</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Function to process each review and append the result to a new column</span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>process_reviews <span class="ot">&lt;-</span> <span class="cf">function</span>(reviews) {</span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  annotations <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;character&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(reviews))</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(reviews<span class="sc">$</span>review)) {</span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>    q <span class="ot">&lt;-</span> <span class="fu">create_query</span>(systemmsg, <span class="at">examples =</span> <span class="fu">list</span>(), reviews<span class="sc">$</span>review[i], classification_question)</span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>    output <span class="ot">&lt;-</span> <span class="fu">query</span>(q, <span class="at">screen =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>    annotations[i] <span class="ot">&lt;-</span> <span class="fu">pluck</span>(output, <span class="st">&quot;message&quot;</span>, <span class="st">&quot;content&quot;</span>)</span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  }</span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  reviews<span class="sc">$</span>annotation <span class="ot">&lt;-</span> annotations</span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>  <span class="fu">return</span>(reviews)</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>}</span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co"># Process and annotate the movie reviews</span></span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a>annotated_reviews <span class="ot">&lt;-</span> <span class="fu">process_reviews</span>(movie_reviews)</span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a></span>
-<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co"># Print the annotated dataframe</span></span>
-<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>annotated_reviews</span>
-<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 3</span></span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt;   review_id review                                          annotation</span></span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                           &lt;chr&gt;     </span></span>
-<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a gripping st… positive  </span></span>
-<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting was s… neutral   </span></span>
-<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performan… negative  </span></span>
-<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beauti… positive  </span></span>
-<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effect… neutral</span></span></code></pre></div>
+<p>We can use <code>make_query</code> again to define a query for each
+of these reviews. What we want to do is to perform a sentiment analysis,
+guided by a system message and a classification question.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Process each review using make_query</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>queries <span class="ot">&lt;-</span> <span class="fu">make_query</span>(</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>  <span class="at">text =</span> movie_reviews<span class="sc">$</span>review,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">prompt =</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">template =</span> <span class="st">&quot;{prefix}{text}</span><span class="sc">\n</span><span class="st">{prompt}&quot;</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">system =</span> <span class="st">&quot;Classify the sentiment of the movie review. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">prefix =</span> <span class="st">&quot;Text to classify: &quot;</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>)</span></code></pre></div>
+<p>This produces a list of data.frames that have the same query format
+we are now familiar with. All of them have the same prompt, system
+message and prefix, but each has a different text that came from the
+movie reviews data.frame we created above. The <code>query</code>
+function accepts lists of queries, so we can get the annotations simply
+using:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Process and annotate the movie reviews</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>movie_reviews<span class="sc">$</span>annotation <span class="ot">&lt;-</span> <span class="fu">query</span>(queries, <span class="at">screen =</span> <span class="cn">FALSE</span>, <span class="at">output =</span> <span class="st">&quot;text&quot;</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co"># Print the annotated dataframe</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>movie_reviews</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 3</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt;   review_id review                                          annotation</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                           &lt;chr&gt;     </span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a gripping st… Positive  </span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the acting was s… positive  </span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming performan… Negative  </span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventure, beauti… Positive  </span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the special effect… Neutral</span></span></code></pre></div>
+<p>We can also use this approach in a ‘tidy’ coding style:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>movie_reviews_annotated <span class="ot">&lt;-</span> movie_reviews <span class="sc">|&gt;</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="at">sentiment =</span> <span class="fu">make_query</span>(</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>      <span class="at">text =</span> review,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>      <span class="at">prompt =</span> <span class="st">&quot;Categories: positive, neutral, negative&quot;</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>      <span class="at">template =</span> <span class="st">&quot;{prefix}{text}</span><span class="sc">\n</span><span class="st">{prompt}&quot;</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>      <span class="at">system =</span> <span class="st">&quot;Classify the sentiment of the movie review. Answer with just the correct category.&quot;</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>      <span class="at">prefix =</span> <span class="st">&quot;Text to classify: &quot;</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>      <span class="fu">query</span>(<span class="at">screen =</span> <span class="cn">FALSE</span>, <span class="at">output =</span> <span class="st">&quot;text&quot;</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>  )</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>movie_reviews_annotated</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 4</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt;   review_id review                                annotation sentiment</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt;       &lt;int&gt; &lt;chr&gt;                                 &lt;chr&gt;      &lt;chr&gt;    </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; 1         1 A stunning visual spectacle with a g… Positive   Positive </span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt; 2         2 The plot was predictable, but the ac… positive   positive </span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt; 3         3 An overrated film with underwhelming… Negative   Negative </span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt; 4         4 A beautiful tale of love and adventu… Positive   Positive </span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt; 5         5 The movie lacked depth, but the spec… Neutral    Neutral</span></span></code></pre></div>
 <p>This takes a little longer than classic supervised machine learning
 or even classification with transformer models. However, the advantage
 is that instructions can be provided using plain English, the models
 need very few examples to perform surprisingly well, and the best
-models, like <code>mixtral</code>, can often deal more complex
+models, like <code>llama3.2</code>, can often deal with more complex
 categories than other approaches.</p>
 </div>
 

@@ -1,9 +1,10 @@
 #' Generate Embeddings
 #'
 #' @param text text vector to generate embeddings for.
-#' @param model which model to use. See <https://ollama.com/library> for options.
-#'   Default is "llama3". Set option(rollama_model = "modelname") to change
-#'   default for the current session. See \link{pull_model} for more details.
+#' @param model which model to use. See <https://ollama.com/library> for
+#'   options. Default is "llama3.1". Set option(rollama_model = "modelname") to
+#'   change default for the current session. See \link{pull_model} for more
+#'   details.
 #' @param model_params a named list of additional model parameters listed in the
 #'   [documentation for the
 #'   Modelfile](https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values).
@@ -18,62 +19,52 @@
 #'
 #' @examples
 #' \dontrun{
-#' embed_text(c("Here is an article about llamas...",
-#'              "R is a language and environment for statistical computing and graphics."))
+#' embed_text(c(
+#'   "Here is an article about llamas...",
+#'   "R is a language and environment for statistical computing and graphics."))
 #' }
 embed_text <- function(text,
                        model = NULL,
                        server = NULL,
                        model_params = NULL,
-                       verbose = getOption("rollama_verbose", default = interactive())) {
+                       verbose = getOption("rollama_verbose",
+                                           default = interactive())) {
 
-  if (is.null(model)) model <- getOption("rollama_model", default = "llama3")
-  if (is.null(server)) server <- getOption("rollama_server", default = "http://localhost:11434")
-  if (verbose) cli::cli_progress_bar(
-    total = length(text),
+  if (is.null(model)) model <- getOption("rollama_model", default = "llama3.1")
+  if (is.null(server)) server <- getOption("rollama_server",
+                                           default = "http://localhost:11434")
+  check_model_installed(model, server = server)
+
+  pb <- FALSE
+  if (verbose) pb <- list(
     format = "{cli::pb_spin} embedding text {cli::pb_current} / {cli::pb_total} ({cli::pb_rate}) {cli::pb_eta}",
     format_done = "{cli::col_green(cli::symbol$tick)} embedded {cli::pb_total} texts {cli::col_silver('[', cli::pb_elapsed, ']')}",
-    clear = FALSE,
-    .envir = the
+    clear = FALSE
   )
 
-  out <- purrr::map(seq_along(text), function(i) {
+  reqs <- purrr::map(text, function(t) {
+    list(model = model,
+         prompt = t,
+         stream = FALSE,
+         model_params = model_params) |>
+      purrr::compact() |>
+      make_req(server = server,
+               endpoint = "/api/embeddings",
+               perform = FALSE)
+  })
 
-    req_data <- list(model = model,
-                     prompt = text[i],
-                     stream = FALSE,
-                     model_params = model_params) |>
-      purrr::compact()
+  resps <- httr2::req_perform_parallel(reqs, progress = pb)
 
-    if (verbose) {
-      # cli::cli_progress_step("{cli::pb_spin} {model} is embedding text {i}")
-      rp <- callr::r_bg(make_req,
-                        args = list(req_data = req_data,
-                                    server = server,
-                                    endpoint = "/api/embeddings"),
-                        package = TRUE)
-      while (rp$is_alive()) {
-        cli::cli_progress_update(inc = 0L, .envir = the)
-        Sys.sleep(2 / 100)
-      }
-      resp <- rp$get_result()
-      cli::cli_progress_update(.envir = the)
-
+  out <- purrr::map(resps, function(resp) {
+    if (httr2::resp_content_type(resp) == "application/json") {
+      emd <- httr2::resp_body_json(resp) |>
+        purrr::pluck("embedding")
+      names(emd) <- paste0("dim_", seq_along(emd))
+      tibble::as_tibble(emd)
     } else {
-      resp <- make_req(req_data, server, "/api/embeddings")
+      cli::cli_alert_danger("Request did not return embeddings")
     }
-
-    if (!is.null(resp$error)) {
-      if (grepl("model.+not found, try pulling it first", resp$error)) {
-        resp$error <- paste(resp$error, "with {.code pull_model(\"{model}\")}")
-      }
-      cli::cli_abort(resp$error)
-    }
-    names(resp$embedding) <- paste0("dim_", seq_along(resp$embedding))
-    tibble::as_tibble(resp$embedding)
   }) |>
     dplyr::bind_rows()
-
-  if (verbose) cli::cli_progress_done(.envir = the)
   return(out)
 }

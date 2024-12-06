@@ -4,14 +4,21 @@
 \alias{check_model_installed}
 \title{Check if one or several models are installed on the server}
 \usage{
-check_model_installed(model, auto_pull = FALSE, server = NULL)
+check_model_installed(
+  model,
+  check_only = FALSE,
+  auto_pull = FALSE,
+  server = getOption("rollama_server", default = "http://localhost:11434")
+)
 }
 \arguments{
 \item{model}{names of one or several models as character vector.}
 
+\item{check_only}{only return TRUE/FALSE and don't download models.}
+
 \item{auto_pull}{if FALSE, the default, asks before downloading models.}
 
-\item{server}{URL to an Ollama server (not the API). Defaults to
+\item{server}{URL to one or several Ollama servers (not the API). Defaults to
 "http://localhost:11434".}
 }
 \value{
