@@ -20,11 +20,11 @@ check_model_installed <- function(model,
                                   auto_pull = FALSE,
                                   server = getOption("rollama_server",
                                                      default = "http://localhost:11434")) {
+
+  model <- sub("^([^:]+)$", "\\1:latest", model)
   for (sv in server) {
     models_df <- list_models(server = sv)
     mdl <- setdiff(model, models_df[["name"]])
-    model_wo_vers <- gsub(":.*", "", models_df[["name"]])
-    mdl <- setdiff(mdl, model_wo_vers)
 
     if (length(mdl) > 0L) {
       if (check_only) {
@@ -32,8 +32,8 @@ check_model_installed <- function(model,
       }
       if (interactive() && !auto_pull) {
         msg <- c(
-          "{cli::col_cyan(cli::symbol$info)} {sv}:",
-          " Model{?s} {.emph {mdl}} not installed on.",
+          "{cli::col_cyan(cli::symbol$info)}",
+          " Model{?s} {.emph {mdl}} not installed on {sv}.",
           " Would you like to download {?it/them}?"
         )
         auto_pull <- utils::askYesNo(cli::cli_text(msg))
@@ -112,4 +112,15 @@ check_conversation <- function(msg) {
     cli::cli_abort(paste("If you supply a conversation object, it needs at",
                          "least one user message. See {.help query}."))
   return(msg)
+}
+
+throw_error <- function(fails) {
+  error_counts <- table(fails)
+  for (f in names(error_counts)) {
+    if (error_counts[f] > 2) {
+      cli::cli_alert_danger("error ({error_counts[f]} times): {f}")
+    } else {
+      cli::cli_alert_danger("error: {f}")
+    }
+  }
 }

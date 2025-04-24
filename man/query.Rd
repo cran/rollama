@@ -51,7 +51,7 @@ reproducible results (see examples).}
 
 \item{output}{what the function should return. Possible values are
 "response", "text", "list", "data.frame", "httr2_response" or
-"httr2_request" see details.}
+"httr2_request" or a function see details.}
 
 \item{format}{the format to return a response in. Currently the only accepted
 value is \code{"json"}.}
@@ -59,9 +59,10 @@ value is \code{"json"}.}
 \item{template}{the prompt template to use (overrides what is defined in the
 Modelfile).}
 
-\item{verbose}{Whether to print status messages to the Console
-(\code{TRUE}/\code{FALSE}). The default is to have status messages in
-interactive sessions. Can be changed with \code{options(rollama_verbose = FALSE)}.}
+\item{verbose}{Whether to print status messages to the Console. Either
+\code{TRUE}/\code{FALSE} or see \link[httr2:progress_bars]{httr2::progress_bars}. The default is to have status
+messages in interactive sessions. Can be changed with
+\code{options(rollama_verbose = FALSE)}.}
 }
 \value{
 list of objects set in output parameter.
@@ -90,11 +91,13 @@ headers in the \code{httr2} response format
 \item \code{httr2_request}: httr2_request objects in a list, in case you want to run
 them with \code{\link[httr2:req_perform]{httr2::req_perform()}}, \code{\link[httr2:req_perform_sequential]{httr2::req_perform_sequential()}}, or
 \code{\link[httr2:req_perform_parallel]{httr2::req_perform_parallel()}} yourself.
+\item a custom function that takes the \code{httr2_response}(s) from the Ollama
+server as an input.
 }
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-#' # ask a single question
+# ask a single question
 query("why is the sky blue?")
 
 # hold a conversation
@@ -107,6 +110,16 @@ answer <- resp[[1]]$message$content
 
 # or just get the answer directly
 answer <- query(q = "why is the sky blue?", output = "text")
+
+# besides the other output options, you can also supply a custom function
+query_duration <- function(resp) {
+nanosec <- purrr::map(resp, httr2::resp_body_json) |>
+  purrr::map_dbl("total_duration")
+  round(nanosec * 1e-9, digits = 2)
+}
+# this function only returns the number of seconds a request took
+res <- query("why is the sky blue?", output = query_duration)
+res
 
 # ask question about images (to a multimodal model)
 images <- c("https://avatars.githubusercontent.com/u/23524101?v=4", # remote

@@ -8,5 +8,4 @@
 
 library(testthat)
 library(rollama)
-
 test_check("rollama")
