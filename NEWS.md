@@ -1,3 +1,5 @@
+# rollama 0.2.2
+
 # rollama 0.2.1
 
 * added support for structured output
